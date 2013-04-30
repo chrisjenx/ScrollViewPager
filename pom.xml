@@ -7,6 +7,61 @@
     <groupId>uk.co.chrisjenx.scrollviewpager</groupId>
     <artifactId>parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
-    
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+    <licenses>
+        <license>
+            <name>Apache License Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <url>https://github.com/chrisjenx/ScrollViewPager</url>
+        <connection>scm:git:git://github.com/chrisjenx/ScrollViewPager.git</connection>
+        <developerConnection>scm:git:git@github.com:chrisjenx/ScrollViewPager.git</developerConnection>
+        <tag>v1.0.0</tag>
+    </scm>
+    <developers>
+        <developer>
+            <name>Christopher Jenkins</name>
+            <organization>Chrisjenx</organization>
+            <organizationUrl>http://chrisjenx.co.uk</organizationUrl>
+        </developer>
+    </developers>
+
+
+    <modules>
+        <module>library</module>
+        <module>example</module>
+    </modules>
+
+    <properties>
+        <java.version>1.6</java.version>
+        <android.version.build>16</android.version.build>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.android</groupId>
+                <artifactId>android</artifactId>
+                <version>4.1.1.4</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.android</groupId>
+                <artifactId>support-v4</artifactId>
+                <version>r7</version>
+            </dependency>
+        </dependencies>
+
+    </dependencyManagement>
+
+
 </project>
