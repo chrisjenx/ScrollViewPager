@@ -42,9 +42,11 @@ public class ScrollViewPager implements View.OnTouchListener
             @Override
             public void run()
             {
-                mScroller.computeScrollOffset();
-                mScrollView.scrollTo(0, mScroller.getCurrY());
-
+                if (mScroller.computeScrollOffset())
+                {
+                    mScrollView.scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
+                    mScrollView.postInvalidate();
+                }
                 if (!mScroller.isFinished())
                 {
                     mScrollView.post(this);
@@ -124,7 +126,8 @@ public class ScrollViewPager implements View.OnTouchListener
                     final int nextPageTop = nextPage * displayHeight;
 
                     // Start scrolling calculation.
-                    mScroller.startScroll(0, currScrollY, 0, Math.min(lastPageTopY, nextPageTop) - currScrollY, mMinAnimationDuration);
+                    mScroller.fling(0, getCurrentScrollY(), 0, (int) -velocityY, 0, 0, nextPageTop - currScrollY, nextPageTop - pageHeight);
+//                    mScroller.startScroll(0, currScrollY, 0, Math.min(lastPageTopY, nextPageTop) - currScrollY, mMinAnimationDuration);
 
                     // Start animation.
                     mScrollView.post(task);
