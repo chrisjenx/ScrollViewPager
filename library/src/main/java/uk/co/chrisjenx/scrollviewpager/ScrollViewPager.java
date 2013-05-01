@@ -10,13 +10,12 @@ import android.widget.Scroller;
 
 public class ScrollViewPager implements View.OnTouchListener
 {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final String TAG = "ScrollViewPager";
     // Velocity stuff
     private final int mMinVelocity;
     private final int mMaxVelocity;
     private final int mMinAnimationDuration = 400;
-    private final int mMaxAnimationDuration = 1000;
     //Tracking
     private VelocityTracker mVelocityTracker;
     private float mInitialY = -1;
@@ -252,11 +251,6 @@ public class ScrollViewPager implements View.OnTouchListener
         return mScrollView.getScrollY();
     }
 
-
-//    void onScroll(final int x, final int y)
-//    {
-//
-//    }
 
     /**
      * Works out the current page you are looking at. Or which is at least overlaps the middle of the scroll view
