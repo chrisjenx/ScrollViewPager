@@ -68,19 +68,21 @@ public class ScrollViewPager implements View.OnTouchListener
         final int index = MotionEventCompat.getActionIndex(ev);
         final int action = MotionEventCompat.getActionMasked(ev);
         final int pointerId = MotionEventCompat.getPointerId(ev, index);
+
+        //Start Tracking
+        if (mVelocityTracker == null)
+            mVelocityTracker = VelocityTracker.obtain();
+
         switch (action)
         {
             case MotionEvent.ACTION_DOWN:
                 //Reset everything
                 resetPager();
 
-                //Start Tracking
-                if (mVelocityTracker == null)
-                    mVelocityTracker = VelocityTracker.obtain();
                 // Add motion
                 mVelocityTracker.addMovement(ev);
 
-                //Get the intial touch points
+                //Get the initial touch points
                 mLastY = mInitialY = ev.getY();
                 break;
             case MotionEvent.ACTION_MOVE:
@@ -149,6 +151,7 @@ public class ScrollViewPager implements View.OnTouchListener
                 // Consume touch event
                 return true;
             case MotionEvent.ACTION_CANCEL:
+                resetVelocityTracker();
                 resetPager();
                 break;
         }
@@ -214,7 +217,7 @@ public class ScrollViewPager implements View.OnTouchListener
             mScrollView.removeCallbacks(mScrollRunnable);
         }
         mIsScrolling = false;
-        resetVelocityTracker();
+//        resetVelocityTracker();
     }
 
     void resetVelocityTracker()

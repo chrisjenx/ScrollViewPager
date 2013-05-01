@@ -18,13 +18,14 @@ So what you may notices that it feels less 'snappy' then the ViewPager, I am loo
 Version
 -------
 
-**v1.0.1** - Not really stable at all. Very Initial Release.
+**v1.0.2** - Not really stable at all. Very Initial Release.
 
 This is still very beta, and I am not pushing to Central until I know that is pretty stable, so please feel free to clone and test and send pull requests/sugestions.
 
 ChangeLog
 ---------
  - 1.0.1 Fixed the linear layout measuring childrens widths wrong, does a very fast layout pass.
+ - 1.0.2 Fixed potential NP error with velocity tracker
 
 Example Usage
 =============
