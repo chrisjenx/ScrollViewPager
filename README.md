@@ -3,7 +3,7 @@ ScrollViewPager
 
 ScrollView Pager that makes a ScrollView act like it has pages.
 
-*Jar: [v1.0.0](https://github.com/chrisjenx/ScrollViewPager/blob/master/library-1.0.0-SNAPSHOT.jar?raw=true)*
+*Jar: [v1.0.1](https://github.com/chrisjenx/ScrollViewPager/blob/master/library-1.0.1-SNAPSHOT.jar?raw=true)*
 
 Notes
 -----
@@ -18,9 +18,13 @@ So what you may notices that it feels less 'snappy' then the ViewPager, I am loo
 Version
 -------
 
-**v1.0.0** - Not really stable at all. Very Initial Release.
+**v1.0.1** - Not really stable at all. Very Initial Release.
 
 This is still very beta, and I am not pushing to Central until I know that is pretty stable, so please feel free to clone and test and send pull requests/sugestions.
+
+ChangeLog
+---------
+ - 1.0.1 Fixed the linear layout measuring childrens widths wrong, does a very fast layout pass.
 
 Example Usage
 =============

@@ -36,12 +36,13 @@ public class SameHeightLinearLayout extends LinearLayout
     @Override
     protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec)
     {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+//        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         final int parentHeight = getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec);
         final int parentWidth = getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec);
 
         final int childHeightSpec = MeasureSpec.makeMeasureSpec(parentHeight, MeasureSpec.EXACTLY);
-        final int childWidthSpec = MeasureSpec.makeMeasureSpec(parentWidth, widthMeasureSpec);
+//        final int childWidthSpec = MeasureSpec.makeMeasureSpec(parentWidth, MeasureSpec.getMode(widthMeasureSpec));
+        int childWidthSpec;
 
         int measuredHeight = 0;
         final int childCount = getChildCount();
@@ -50,6 +51,8 @@ public class SameHeightLinearLayout extends LinearLayout
             final View view = getChildAt(i);
             if (view.getVisibility() != GONE)
             {
+                measureChild(view, widthMeasureSpec, childHeightSpec);
+                childWidthSpec = getChildMeasureSpec(MeasureSpec.AT_MOST, 0, view.getMeasuredWidth());
                 view.measure(childWidthSpec, childHeightSpec);
                 measuredHeight += parentHeight;
             }
