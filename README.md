@@ -3,6 +3,8 @@ ScrollViewPager
 
 ScrollView Pager that makes a ScrollView act like it has pages.
 
+*Jar: [v1.0.0](https://github.com/chrisjenx/ScrollViewPager/blob/master/library-1.0.0-SNAPSHOT.jar?raw=true)*
+
 Notes
 -----
 
