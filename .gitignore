@@ -24,3 +24,6 @@ local.properties
 # Eclipse project files
 .classpath
 .project
+
+#OSx
+.DS_store
