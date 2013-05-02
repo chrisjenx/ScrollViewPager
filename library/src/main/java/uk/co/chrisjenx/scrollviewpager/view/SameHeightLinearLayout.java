@@ -24,13 +24,13 @@ public class SameHeightLinearLayout extends LinearLayout
 
     public SameHeightLinearLayout(final Context context, final AttributeSet attrs)
     {
-        this(context, attrs, 0);
+        super(context, attrs);
+        setOrientation(VERTICAL);
     }
 
     public SameHeightLinearLayout(final Context context, final AttributeSet attrs, final int defStyle)
     {
-        super(context, attrs, defStyle);
-        setOrientation(VERTICAL);
+        this(context, attrs);
     }
 
     @Override
