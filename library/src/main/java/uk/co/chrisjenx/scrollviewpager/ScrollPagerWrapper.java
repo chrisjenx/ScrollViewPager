@@ -20,11 +20,11 @@ import static uk.co.chrisjenx.scrollviewpager.Utils.findScroller;
 public class ScrollPagerWrapper
 {
     private static final boolean DEBUG = true;
-    private static final String TAG = "OldPager";
+    private static final String TAG = "ScrollViewPager";
     /**
      * ScrollView to try and intercept
      */
-    protected ScrollView mScrollView;
+    protected final ScrollView mScrollView;
     /**
      * Depending on API Version we use #mScroller or #mOverScroller.
      * This is used API 4 - 8
@@ -35,17 +35,25 @@ public class ScrollPagerWrapper
      * This is the used API 9+
      */
     protected OverScroller mOverScroller;
+    /**
+     * Set to true if we have found native scrollers to intercept
+     */
+    private boolean mNativeMode;
 
 
     public ScrollPagerWrapper(final ScrollView scrollView)
     {
+        mScrollView = scrollView;
         findScrollerFromScrollView(scrollView);
-        Log.d(TAG, String.format("Scroller[%h],OverScroller[%h]", mScroller, mOverScroller));
+        if (DEBUG)
+            Log.d(TAG, String.format("ScrollView,[%h],Scroller[%h],OverScroller[%h]", scrollView, mScroller, mOverScroller));
 
     }
 
     public void fling(final int velocityY)
     {
+        if (DEBUG) Log.d(TAG, String.format("FlingVelY[%d]", velocityY));
+        if (DEBUG) Log.d(TAG, String.format("ScrollerFinalY[%d]", getScrollerFinalY()));
     }
 
     public void computeScroll()
@@ -63,6 +71,21 @@ public class ScrollPagerWrapper
     }
 
     /**
+     * Get the working scrollers FinalY {@link android.widget.OverScroller#getFinalY()}
+     *
+     * @return 0 if no scroller is working, otherwise the attached scrollers final pos
+     */
+    private int getScrollerFinalY()
+    {
+        if (mOverScroller != null)
+            return mOverScroller.getFinalY();
+        if (mScroller != null)
+            return mScroller.getFinalY();
+
+        return 0;
+    }
+
+    /**
      * Will find the valid Scroller for
      *
      * @param scrollView
@@ -74,5 +97,8 @@ public class ScrollPagerWrapper
             mOverScroller = findOverScroller(scrollView);
         else
             mScroller = findScroller(scrollView);
+        if (mOverScroller != null || mScroller != null)
+            mNativeMode = true;
+
     }
 }

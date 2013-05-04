@@ -1,6 +1,7 @@
 package uk.co.chrisjenx.scrollviewpager;
 
 import android.os.Build;
+import android.util.Log;
 import android.widget.OverScroller;
 import android.widget.ScrollView;
 import android.widget.Scroller;
@@ -18,6 +19,8 @@ import java.lang.reflect.Field;
 public final class Utils
 {
     public static final boolean SUPPORTS_GINGER = Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD;
+    private static final boolean DEBUG = true;
+    private static final String TAG = "ScrollViewPager";
 
     public static final Scroller findScroller(final ScrollView scrollView)
     {
@@ -68,19 +71,15 @@ public final class Utils
         if (obj == null) return null;
         try
         {
-            //Try this first as its quicker than getField
-            return obj.getClass().getDeclaredField(fieldName);
+            if (DEBUG) Log.d(TAG, String.format("Find[%s] on [%s]", fieldName, obj));
+            if(obj instanceof ScrollView)
+                return ScrollView.class.getDeclaredField(fieldName);
+            else
+                return obj.getClass().getField(fieldName);
         }
         catch (NoSuchFieldException e)
         {
-            try
-            {
-                return obj.getClass().getField(fieldName);
-            }
-            catch (NoSuchFieldException e1)
-            {
-                e1.printStackTrace();
-            }
+            e.printStackTrace();
             return null;
         }
     }
