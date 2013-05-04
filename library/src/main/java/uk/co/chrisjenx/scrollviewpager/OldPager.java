@@ -8,10 +8,10 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.ScrollView;
 import android.widget.Scroller;
 
-public class ScrollViewPager implements View.OnTouchListener
+public class OldPager implements View.OnTouchListener
 {
     private static final boolean DEBUG = false;
-    private static final String TAG = "ScrollViewPager";
+    private static final String TAG = "OldPager";
     // Velocity stuff
     private final int mMinVelocity;
     private final int mMaxVelocity;
@@ -31,7 +31,7 @@ public class ScrollViewPager implements View.OnTouchListener
     private boolean mIsScrolling = false;
 
 
-    public ScrollViewPager(final ScrollView scrollView, final ViewGroup contentView)
+    public OldPager(final ScrollView scrollView, final ViewGroup contentView)
     {
         mScrollView = scrollView;
         mContentView = contentView;
@@ -277,7 +277,7 @@ public class ScrollViewPager implements View.OnTouchListener
      * @param currentScrollY   Current ScrollY value in pixels
      * @return ScrollY Position of the middle of the scroll view
      */
-    final int calculateScrollYMiddle(final int scrollViewHeight, final int currentScrollY)
+    static final int calculateScrollYMiddle(final int scrollViewHeight, final int currentScrollY)
     {
         //currScrollY + displayHeight / 2;
         return currentScrollY + scrollViewHeight / 2;

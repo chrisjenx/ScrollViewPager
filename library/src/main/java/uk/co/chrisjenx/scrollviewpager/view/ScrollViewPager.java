@@ -15,22 +15,22 @@ import uk.co.chrisjenx.scrollviewpager.ScrollPagerWrapper;
  * Date: 03/05/2013
  * Time: 20:41
  */
-public class ScollViewPager extends ScrollView
+public class ScrollViewPager extends ScrollView
 {
     protected final ScrollPagerWrapper mPagerWrapper;
 
-    public ScollViewPager(final Context context)
+    public ScrollViewPager(final Context context)
     {
         this(context, null);
     }
 
-    public ScollViewPager(final Context context, final AttributeSet attrs)
+    public ScrollViewPager(final Context context, final AttributeSet attrs)
     {
         super(context, attrs);
         mPagerWrapper = new ScrollPagerWrapper(this);
     }
 
-    public ScollViewPager(final Context context, final AttributeSet attrs, final int defStyle)
+    public ScrollViewPager(final Context context, final AttributeSet attrs, final int defStyle)
     {
         this(context, attrs);
     }
@@ -38,6 +38,7 @@ public class ScollViewPager extends ScrollView
     @Override
     public void fling(final int velocityY)
     {
+        // We want the scroll view to calculate the fling first so we can then "adjust it" later.
         super.fling(velocityY);
         mPagerWrapper.fling(velocityY);
     }
@@ -45,6 +46,7 @@ public class ScollViewPager extends ScrollView
     @Override
     public void computeScroll()
     {
+        // We want the scroll view to compute scroll so we can then "adjust" later.
         super.computeScroll();
         mPagerWrapper.computeScroll();
     }
@@ -52,12 +54,16 @@ public class ScollViewPager extends ScrollView
     @Override
     public boolean onInterceptTouchEvent(final MotionEvent ev)
     {
-        return mPagerWrapper.onInterceptTouchEvent(ev) || super.onInterceptTouchEvent(ev);
+        if (mPagerWrapper.onInterceptTouchEvent(ev))
+            return true;
+        return super.onInterceptTouchEvent(ev);
     }
 
     @Override
     public boolean onTouchEvent(final MotionEvent ev)
     {
-        return mPagerWrapper.onTouchEvent(ev) || super.onTouchEvent(ev);
+        if (mPagerWrapper.onTouchEvent(ev))
+            return true;
+        return super.onTouchEvent(ev);
     }
 }

@@ -3,13 +3,11 @@ package uk.co.chrisjenx.scrollviewpager.example;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.ViewGroup;
-import android.widget.ScrollView;
-import uk.co.chrisjenx.scrollviewpager.ScrollViewPager;
+import uk.co.chrisjenx.scrollviewpager.view.ScrollViewPager;
 
 public class MainActivity extends Activity
 {
-    private ScrollViewPager mPager;
-    private ScrollView mScrollView;
+    private ScrollViewPager mScrollView;
     private ViewGroup mScrollContent;
 
     /**
@@ -22,9 +20,7 @@ public class MainActivity extends Activity
         setContentView(R.layout.main);
 
 
-        mScrollView = (ScrollView) findViewById(R.id.scroll_view);
+        mScrollView = (ScrollViewPager) findViewById(R.id.scroll_view);
         mScrollContent = (ViewGroup) findViewById(R.id.content);
-
-        mPager = new ScrollViewPager(mScrollView, mScrollContent);
     }
 }
