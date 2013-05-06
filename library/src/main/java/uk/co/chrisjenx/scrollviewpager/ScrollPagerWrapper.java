@@ -9,6 +9,7 @@ import android.widget.OverScroller;
 import android.widget.ScrollView;
 import android.widget.Scroller;
 
+import static java.lang.Math.abs;
 import static uk.co.chrisjenx.scrollviewpager.Utils.findOverScroller;
 import static uk.co.chrisjenx.scrollviewpager.Utils.findScroller;
 
@@ -27,7 +28,7 @@ public class ScrollPagerWrapper
     /**
      * Whats the shortest time it takes to animate.
      */
-    private static int mMinAnimationDuration = 200;
+    private static int mMinAnimationDuration = 400;
     /**
      * How slow are we allowed to animate
      */
@@ -78,6 +79,10 @@ public class ScrollPagerWrapper
      * The Current Page that the ScrollView is sitting on.
      */
     private int mCurrentPage;
+    /**
+     * Temp final y where to stop
+     */
+    private int mFinalY;
 
 
     public ScrollPagerWrapper(final ScrollView scrollView)
@@ -94,7 +99,7 @@ public class ScrollPagerWrapper
         {
             final ViewConfiguration vc = ViewConfiguration.get(mScrollView.getContext());
             mOverflingDistance = vc.getScaledOverflingDistance();
-            mOverscrollDistance = vc.getScaledOverflingDistance();
+            mOverscrollDistance = vc.getScaledOverscrollDistance();
         }
         else
         {
@@ -107,17 +112,37 @@ public class ScrollPagerWrapper
 
     public void fling(final int velocityY)
     {
-        if (DEBUG) Log.d(TAG, String.format("FlingVelY[%d], ScrollerFinalY[%d]", velocityY, getScrollerFinalY()));
-        calculateWhereFlingShouldStop();
+        mFinalY = calculateWhereFlingShouldStop();
+        setScrollerFinalY(mFinalY); // Only works for API9<
+        if (DEBUG)
+            Log.d(TAG, String.format("FlingVelY[%d], ScrollerFinalY[%d], NewFinalY[%d]", velocityY, getScrollerFinalY(), mFinalY));
     }
 
     public void computeScroll()
     {
         //Nothing at the moment
+        if (mFinalY == Integer.MAX_VALUE) return;
+
+        if (mFinalY != getScrollerFinalY() && willNotPassFinalY(getScrollerStartY(), getScrollerFinalY(), mFinalY))
+        {
+            abortAnimation();
+            final int delta = mFinalY - getCurrentScrollY();
+            startScroll(0, getCurrentScrollY(), 0, delta, calculateDuration(mFinalY - getScrollerStartY(), getScrollerCurrVelocity()));
+            postInvalidateOnAnimation();
+        }
+        if (mFinalY != getScrollerFinalY() && hasPassedFinalY(getScrollerStartY(), mFinalY, getScrollerCurrentY()))
+            notifyVerticalEdgeReached(getScrollerCurrentY(), mFinalY, mOverscrollDistance);
     }
 
     public boolean onTouchEvent(final MotionEvent ev)
     {
+        switch (ev.getAction())
+        {
+            case MotionEvent.ACTION_MOVE:
+            case MotionEvent.ACTION_DOWN:
+                //Reset mFinalY
+                mFinalY = Integer.MAX_VALUE;
+        }
         return false;
     }
 
@@ -189,6 +214,14 @@ public class ScrollPagerWrapper
         return null;
     }
 
+    int calculateDuration(float delta, float velocity)
+    {
+        if (delta == 0 || velocity == 0) return mMinAnimationDuration;
+        final int duration = (int) Math.max(mMinAnimationDuration, (abs(delta) / abs(velocity)) * 1000);
+        if (DEBUG) Log.d(TAG, String.format("Duration[%d]", duration));
+        return duration;
+    }
+
     /**
      * Snap to the selected page, if you pass in a velocity it will try and reach that destination at the correct velocity speed
      *
@@ -205,7 +238,7 @@ public class ScrollPagerWrapper
         final int delta = findScrollContent().getChildAt(whichPage).getTop() - getCurrentScrollY();
         int time = mMaxAnimationDuration;
         if (velocity != 0)
-            time = Math.min(mMaxAnimationDuration, Math.max(mMinAnimationDuration, (int) (delta / Math.abs(velocity))));
+            time = Math.min(mMaxAnimationDuration, Math.max(mMinAnimationDuration, (int) (delta / abs(velocity))));
 
 
         mScroller.startScroll(0, getCurrentScrollY(), 0, delta, time);
@@ -213,9 +246,10 @@ public class ScrollPagerWrapper
 
     /**
      * Looks at the current fling state of the stroller and will work out what the closest page to where the fling would naturally stop.
-     * Then sets the finalY position to end there.
+     *
+     * @return the final y pos that the scroller should stop on
      */
-    void calculateWhereFlingShouldStop()
+    int calculateWhereFlingShouldStop()
     {
         final int initFinishY = getScrollerFinalY();
         int finishTopY = initFinishY;
@@ -228,13 +262,39 @@ public class ScrollPagerWrapper
             currentDelta = child.getTop() - initFinishY;
             if (DEBUG)
                 Log.d(TAG, String.format("ClosestTop[%d],CurrTop[%d],ClosestDelta[%d],CurrDelta[%d]", finishTopY, child.getTop(), smallestDelta, currentDelta));
-            if (Math.abs(currentDelta) < Math.abs(smallestDelta))
+            if (abs(currentDelta) < abs(smallestDelta))
             {
                 smallestDelta = currentDelta;
                 finishTopY = child.getTop();
             }
         }
-        setScrollerFinalY(finishTopY);
+        return finishTopY;
+    }
+
+    /**
+     * Works out if we have scrolled passed our desired page location
+     *
+     * @param startY       Scroller StartingY
+     * @param finalY       Where we want the Scroller to stop
+     * @param currentCalcY the Scroller currently calculated Y pos
+     * @return
+     */
+    private boolean hasPassedFinalY(final int startY, final int finalY, final int currentCalcY)
+    {
+        if (finalY < startY)//Negative scrolling (up)
+            return currentCalcY <= finalY; // Is currentY above finalY
+        else
+        { //Scrolling down
+            return currentCalcY >= finalY; //Is currentY below finalY
+        }
+    }
+
+    private boolean willNotPassFinalY(int startY, int currFinalY, int targetFinalY)
+    {
+        if (currFinalY < startY) return targetFinalY < currFinalY || targetFinalY >= startY;
+        else if (currFinalY > startY)
+            return targetFinalY > currFinalY || targetFinalY <= startY;
+        return false;
     }
 
     /**
@@ -288,6 +348,14 @@ public class ScrollPagerWrapper
         return 0;
     }
 
+    private void abortAnimation()
+    {
+        if (mOverScroller != null)
+            mOverScroller.abortAnimation();
+        if (mScroller != null)
+            mScroller.abortAnimation();
+    }
+
     /**
      * Get the working scrollers FinalY {@link android.widget.OverScroller#getFinalY()}
      *
@@ -303,18 +371,82 @@ public class ScrollPagerWrapper
         return 0;
     }
 
+    /**
+     * This only works for preAPI9, worth modifying the on Scroll or calcScroll to make sure this is carried out
+     *
+     * @param y
+     */
     private void setScrollerFinalY(final int y)
     {
         if (mOverScroller != null)
-        {
-
-        }
-        else if (mScroller != null)
+            mFinalY = y;
+        if (mScroller != null)
             mScroller.setFinalY(y);
     }
 
     /**
-     * Will return the current y pos of the scroll view if it exisits otherwise defaults to 0
+     * Tell the over scroller that we have reached an edge or a top of a page..
+     *
+     * @param startY
+     * @param finalY
+     * @param overY
+     */
+    private void notifyVerticalEdgeReached(final int startY, final int finalY, final int overY)
+    {
+        if (mOverScroller != null)
+            mOverScroller.notifyVerticalEdgeReached(startY, finalY, overY);
+    }
+
+    /**
+     * Fling the scroller
+     */
+    private void fling(final int startX, final int startY, final int velocityX, final int velocityY, final int minX, final int maxX, final int minY, final int maxY)
+    {
+        if (mOverScroller != null)
+            mOverScroller.fling(startX, startY, velocityX, velocityY, minX, maxX, minY, maxY);
+        else if (mScroller != null)
+            mScroller.fling(startX, startY, velocityX, velocityY, minX, maxX, minY, maxY);
+    }
+
+    /**
+     * Get the current y calcualted by the scroller
+     *
+     * @return
+     */
+    private int getScrollerCurrentY()
+    {
+        if (mOverScroller != null)
+            return mOverScroller.getCurrY();
+        else if (mScroller != null)
+            return mScroller.getCurrY();
+        return 0;
+    }
+
+    /**
+     * get the starting point of the Scroller!
+     *
+     * @return
+     */
+    private int getScrollerStartY()
+    {
+        if (mOverScroller != null)
+            return mOverScroller.getStartY();
+        else if (mScroller != null)
+            return mScroller.getStartY();
+        return 0;
+    }
+
+    private float getScrollerCurrVelocity()
+    {
+        if (mOverScroller != null)
+            return mOverScroller.getCurrVelocity();
+        if (mScroller != null)
+            return mScroller.getCurrVelocity();
+        return 0;
+    }
+
+    /**
+     * Will return the current y pos of the scroll view if it exists otherwise defaults to 0
      *
      * @return
      */
