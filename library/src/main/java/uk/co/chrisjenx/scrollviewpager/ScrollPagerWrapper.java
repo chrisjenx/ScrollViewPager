@@ -10,6 +10,8 @@ import android.widget.ScrollView;
 import android.widget.Scroller;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static uk.co.chrisjenx.scrollviewpager.Utils.findOverScroller;
 import static uk.co.chrisjenx.scrollviewpager.Utils.findScroller;
 
@@ -57,6 +59,8 @@ public class ScrollPagerWrapper
      */
     protected final int mOverscrollDistance;
     protected final int mOverflingDistance;
+    private final int mMinVelocity;
+    private final int mMaxVelocity;
     /**
      * ScrollContent, this will try to find its self if you don't define it
      */
@@ -95,9 +99,11 @@ public class ScrollPagerWrapper
         mScrollView = scrollView;
         mScrollContent = scrollContent;
         findScrollerFromScrollView(scrollView);
+        final ViewConfiguration vc = ViewConfiguration.get(mScrollView.getContext());
+        mMinVelocity = vc.getScaledMinimumFlingVelocity();
+        mMaxVelocity = vc.getScaledMaximumFlingVelocity();
         if (Utils.SUPPORTS_GINGER)
         {
-            final ViewConfiguration vc = ViewConfiguration.get(mScrollView.getContext());
             mOverflingDistance = vc.getScaledOverflingDistance();
             mOverscrollDistance = vc.getScaledOverscrollDistance();
         }
@@ -127,7 +133,14 @@ public class ScrollPagerWrapper
         {
             abortAnimation();
             final int delta = mFinalY - getCurrentScrollY();
-            startScroll(0, getCurrentScrollY(), 0, delta, calculateDuration(mFinalY - getScrollerStartY(), getScrollerCurrVelocity()));
+            final int newVel = min(mMaxVelocity, max(mMinVelocity, abs(delta * 10)));
+            if (delta > 0)
+                fling(0, getCurrentScrollY(), 0, newVel, 0, 0, 0, mFinalY);
+            else
+                fling(0, getCurrentScrollY(), 0, -newVel, 0, 0, mFinalY, mScrollContent.getHeight());
+            if (DEBUG)
+                Log.i(TAG, String.format("Delta[%d],mFinal[%d],newVel[%d],FlingY[%d]", delta, mFinalY, newVel, getScrollerFinalY()));
+//            startScroll(0, getCurrentScrollY(), 0, delta, calculateDuration(mFinalY - getScrollerStartY(), getScrollerCurrVelocity()));
             postInvalidateOnAnimation();
         }
         if (mFinalY != getScrollerFinalY() && hasPassedFinalY(getScrollerStartY(), mFinalY, getScrollerCurrentY()))
@@ -238,7 +251,7 @@ public class ScrollPagerWrapper
         final int delta = findScrollContent().getChildAt(whichPage).getTop() - getCurrentScrollY();
         int time = mMaxAnimationDuration;
         if (velocity != 0)
-            time = Math.min(mMaxAnimationDuration, Math.max(mMinAnimationDuration, (int) (delta / abs(velocity))));
+            time = min(mMaxAnimationDuration, Math.max(mMinAnimationDuration, (int) (delta / abs(velocity))));
 
 
         mScroller.startScroll(0, getCurrentScrollY(), 0, delta, time);
@@ -261,7 +274,7 @@ public class ScrollPagerWrapper
             child = findScrollContent().getChildAt(i);
             currentDelta = child.getTop() - initFinishY;
             if (DEBUG)
-                Log.d(TAG, String.format("ClosestTop[%d],CurrTop[%d],ClosestDelta[%d],CurrDelta[%d]", finishTopY, child.getTop(), smallestDelta, currentDelta));
+                Log.v(TAG, String.format("ClosestTop[%d],CurrTop[%d],ClosestDelta[%d],CurrDelta[%d]", finishTopY, child.getTop(), smallestDelta, currentDelta));
             if (abs(currentDelta) < abs(smallestDelta))
             {
                 smallestDelta = currentDelta;
